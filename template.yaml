@@ -16,6 +16,8 @@ Resources:
     Properties:
       BucketName: !Sub '${AWS::StackName}-source-images'
       NotificationConfiguration:
+        # Separate Lambda configurations for each file type for clarity and maintainability
+        # This allows easy addition/removal of specific file types without affecting others
         LambdaConfigurations:
           - Event: s3:ObjectCreated:*
             Function: !GetAtt ImageProcessorFunction.Arn

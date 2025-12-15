@@ -20,6 +20,10 @@ s3_client = boto3.client('s3')
 # Get environment variables
 PROCESSED_BUCKET = os.environ.get('PROCESSED_BUCKET')
 
+# Validate environment variables
+if not PROCESSED_BUCKET:
+    raise ValueError("PROCESSED_BUCKET environment variable is required")
+
 # Image processing configurations
 THUMBNAIL_SIZE = (150, 150)
 MEDIUM_SIZE = (800, 600)
@@ -85,7 +89,11 @@ def process_image(image_content, original_key):
             background = Image.new('RGB', image.size, (255, 255, 255))
             if image.mode == 'P':
                 image = image.convert('RGBA')
-            background.paste(image, mask=image.split()[-1] if image.mode in ('RGBA', 'LA') else None)
+            # Use alpha channel as mask for RGBA and LA modes
+            if image.mode in ('RGBA', 'LA'):
+                background.paste(image, mask=image.split()[-1])
+            else:
+                background.paste(image)
             image = background
         
         # Get file name without extension

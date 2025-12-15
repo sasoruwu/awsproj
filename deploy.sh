@@ -51,5 +51,5 @@ aws cloudformation describe-stacks \
 
 echo ""
 echo "To upload an image for processing, use:"
-echo "  SOURCE_BUCKET=\$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==\`SourceBucketName\`].OutputValue' --output text)"
-echo "  aws s3 cp your-image.jpg s3://\$SOURCE_BUCKET/"
+echo '  SOURCE_BUCKET=$(aws cloudformation describe-stacks --stack-name '"$STACK_NAME"' --region '"$REGION"' --query '"'"'Stacks[0].Outputs[?OutputKey==`SourceBucketName`].OutputValue'"'"' --output text)'
+echo '  aws s3 cp your-image.jpg s3://$SOURCE_BUCKET/'
