@@ -12,6 +12,7 @@ Resources:
   # S3 Bucket for original images
   SourceImageBucket:
     Type: AWS::S3::Bucket
+    DependsOn: ImageProcessorFunctionPermission
     Properties:
       BucketName: !Sub '${AWS::StackName}-source-images'
       NotificationConfiguration:
@@ -56,7 +57,7 @@ Resources:
           PROCESSED_BUCKET: !Ref ProcessedImageBucket
       Policies:
         - S3ReadPolicy:
-            BucketName: !Ref SourceImageBucket
+            BucketName: !Sub '${AWS::StackName}-source-images'
         - S3CrudPolicy:
             BucketName: !Ref ProcessedImageBucket
 
