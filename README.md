@@ -1,5 +1,9 @@
 # AWS Automated Image Processing System
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![AWS SAM](https://img.shields.io/badge/AWS-SAM-orange.svg)](https://aws.amazon.com/serverless/sam/)
+
 An automated serverless image processing system built on AWS using Lambda, S3, and CloudFormation. This system automatically processes images uploaded to an S3 bucket by creating multiple resized versions (thumbnail, medium, and large).
 
 ## Features
@@ -51,12 +55,22 @@ awsproj/
 ├── src/
 │   ├── image_processor.py    # Lambda function code
 │   └── requirements.txt       # Python dependencies
+├── tests/
+│   ├── test_image_processor.py  # Unit tests
+│   └── requirements.txt       # Test dependencies
 ├── events/
 │   └── s3-event.json         # Sample S3 event for testing
 ├── template.yaml             # SAM/CloudFormation template
 ├── deploy.sh                 # Deployment script
+├── cleanup.sh                # Cleanup script
 ├── test-local.sh            # Local testing script
-└── README.md                # This file
+├── run-tests.sh             # Test runner script
+├── README.md                # This file
+├── QUICKSTART.md            # Quick start guide
+├── ARCHITECTURE.md          # Architecture documentation
+├── EXAMPLE.md               # Complete usage example
+├── CONTRIBUTING.md          # Contribution guidelines
+└── CHANGELOG.md             # Version history
 ```
 
 ## Deployment
@@ -225,18 +239,20 @@ Example: Processing 10,000 images/month (~2MB each):
 
 ## Cleanup
 
-To delete all resources:
+To delete all resources, use the automated cleanup script:
 
 ```bash
-aws cloudformation delete-stack --stack-name image-processing-system
-
-# Empty and delete buckets manually (CloudFormation won't delete non-empty buckets)
-aws s3 rm s3://$SOURCE_BUCKET --recursive
-aws s3 rb s3://$SOURCE_BUCKET
-
-aws s3 rm s3://$PROCESSED_BUCKET --recursive
-aws s3 rb s3://$PROCESSED_BUCKET
+./cleanup.sh
 ```
+
+This will safely remove:
+- All objects in both S3 buckets
+- Both S3 buckets (source and processed)
+- The Lambda function
+- All IAM roles and permissions
+- The entire CloudFormation stack
+
+**Note**: The cleanup script will prompt for confirmation before deleting any resources.
 
 ## Troubleshooting
 
@@ -275,9 +291,19 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is open source and available under the MIT License.
 
+## Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Fast-start guide for immediate deployment
+- **[EXAMPLE.md](EXAMPLE.md)** - Complete step-by-step usage example
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Detailed system architecture and design
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Guidelines for contributing to the project
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
+- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Implementation summary
+
 ## Support
 
 For issues and questions:
 - Create an issue in the GitHub repository
 - Check CloudWatch Logs for debugging information
 - Review AWS Lambda and S3 documentation
+- See [EXAMPLE.md](EXAMPLE.md) for complete walkthrough with troubleshooting
