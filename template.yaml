@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Automated Image Processing System
+
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 512
+    Runtime: python3.11
+
+Resources:
+  # S3 Bucket for original images
+  SourceImageBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: ImageProcessorFunctionPermission
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-source-images'
+      NotificationConfiguration:
+        # Separate Lambda configurations for each file type for clarity and maintainability
+        # This allows easy addition/removal of specific file types without affecting others
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt ImageProcessorFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .jpg
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt ImageProcessorFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .png
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt ImageProcessorFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .jpeg
+
+  # S3 Bucket for processed images
+  ProcessedImageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-processed-images'
+
+  # Lambda Function for Image Processing
+  ImageProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-image-processor'
+      CodeUri: src/
+      Handler: image_processor.lambda_handler
+      Environment:
+        Variables:
+          PROCESSED_BUCKET: !Ref ProcessedImageBucket
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Sub '${AWS::StackName}-source-images'
+        - S3CrudPolicy:
+            BucketName: !Ref ProcessedImageBucket
+
+  # Permission for S3 to invoke Lambda
+  ImageProcessorFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ImageProcessorFunction
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::${AWS::StackName}-source-images'
+
+Outputs:
+  SourceBucketName:
+    Description: Name of the source S3 bucket
+    Value: !Ref SourceImageBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-SourceBucket'
+
+  ProcessedBucketName:
+    Description: Name of the processed S3 bucket
+    Value: !Ref ProcessedImageBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-ProcessedBucket'
+
+  ImageProcessorFunctionArn:
+    Description: ARN of the Image Processor Lambda function
+    Value: !GetAtt ImageProcessorFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ProcessorArn'
